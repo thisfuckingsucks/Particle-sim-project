@@ -40,7 +40,6 @@ class Simulation:
 
         self.screen = turtle.Screen()
         self.start = False
-        self.start_setup_bool = False
         self.choice = None
         self.selected_ball = None
         self.reset_color = False
@@ -125,7 +124,6 @@ class Simulation:
         for i in range(10):
             self.text[f'{i}'] = text.Text(id=i)
             self.text[f'{i}'].text.goto(-200,100-i*50)
-        size = 24
         self.text['0'].write('Start setup',write_size=24)
         self.text['1'].write('Edit global parameters', write_size=24)
         self.screen.onkeypress(self.start_setup, '0')
@@ -284,7 +282,7 @@ class Simulation:
     def start_setup(self):
         # create balls in a grid pattern
         grid_size = 1
-        while num_balls > grid_size ** 2:
+        while self.num_balls > grid_size ** 2:
             grid_size += 1
         i = 0
         for k in range(grid_size):
@@ -310,7 +308,6 @@ class Simulation:
                                                     ay=self.ay,ax=self.ax, coefficient=self.coefficient))
                     self.ball_list[i].turtle.hideturtle()
                     i += 1
-        self.start_setup_bool = True
         self.text['title'].text.clear()
         for i in range(10):
             self.text[f'{i}'].text.clear()
@@ -360,7 +357,7 @@ class Simulation:
                       f'Normal range: (-10, 10)\n'
                       f'(positive is up)')
                 vv = float(input('Enter velocity value: '))
-                self.ay = vv
+                self.vy = vv
                 print(f'\nHorizontal velocity\n'
                       f'Normal range: (-10, 10)\n'
                       f'(positive is right)')
@@ -369,7 +366,7 @@ class Simulation:
                 self.random_velocity = False
             if i == '2':
                 print(f'\nRandom velocity\n'
-                      f'Default range: (-10, 10)')
+                      f'Default range: (-1.0, 1.0)')
                 rvl = float(input('Enter velocity lower limit: '))
                 self.rvl = rvl
                 while True:
@@ -383,7 +380,7 @@ class Simulation:
 
     def particle_size(self):
         while True:
-            print(f'1. Uniform size\n'
+            print(f'\n1. Uniform size\n'
                   f'2. Random size\n'
                   f'3. Exit')
             i = input('Input option: ')
@@ -400,7 +397,7 @@ class Simulation:
             if i == '2':
                 while True:
                     print(f'\nRandom particle size\n'
-                          f'Normal range: (1.00, 3.00)\n')
+                          f'Normal range: (1.00, 3.00)')
                     rsl = float(input('Enter size lower limit: '))
                     if rsl > 0:
                         rsu = float(input('Enter size upper limit: '))
@@ -453,12 +450,12 @@ class Simulation:
                 while True:
                     print(f'\nElasticity\n'
                           f'Default value: 1.00\n'
-                          f'Normal range: (0.00, 1,00)')
+                          f'Normal range: (0.00, 1.00)')
                     e = float(input('Enter elasticity value: '))
                     if e >= 0:
                         self.coefficient = e
                         break
-            if i == 6:
+            if i == '6':
                 break
 
 num_balls = 25

@@ -90,6 +90,7 @@ class Ball:
         # standard mass = 40000
         xx = self.fx / self.mass
         yy = self.fy / self.mass
+        # apply instantaneous force
         self.ax += xx
         self.ay += yy
         self.fx = 0
