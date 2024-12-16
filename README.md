@@ -8,10 +8,18 @@ Just download all python files together and run 'simulation.py' to start the sim
 
 ## Usage
 https://www.youtube.com/watch?v=crOnPfwzDtM&authuser=0
+### Controls
+start screen '0' and '1' for options\
+simulation set up screen 'Left' and 'Right' to select particle\
+'q' 'w' 'e' 'r' 't' 'y' 'u' 'i' 'o' 'p' to select particle property\
+'Up' and 'Down' to adjust property\
+'0' to start simulation\
+During simulation 'LMB' to creat pulling force\
+'RMB' to cancel
 
 ## Project design and implementation
 ![Untitled683_20241216234150](https://github.com/user-attachments/assets/4b129da4-b4ef-447b-9dc1-1cf468309a42)
-The Ball class makes up the particles in the Simulation class. And the Text class provides and easier way to display text than python turtle in the Simulation class.
+The Ball class is supposed to be a particle that will be used for simulation in the Simulation class. And the Text class provides and easier way to display text than python turtle in the Simulation class.
 ### Provided code uses
 The provided event driven simulation code was modified to a time driven simulation one due to the provided code sometimes not working correctly when implementing curved particle movement at the start of the project.
 And the code for user interactivities were used as a reference for implementing features of the same manner in this project.
