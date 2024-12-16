@@ -1,10 +1,10 @@
 # Particle Simulation
 
 ## Description
-This a particle simulation you can play around with where you can edit the properties of particles.
+This a particle simulation you can play around with where you can edit the properties of particles. Features include setting particle properties such as amount, size, mass, velocity, gravity, and elasticity. Indivual particles can also be modified before simulation begins. During simulation, a pulling force can also be applied to the scene using your mouse.
 
 ## How to run
-Just download all python files together and run 'simulation.py' to start the simulation.
+Just download all python files together and run 'simulation.py' to start the simulation. Editing the global parameters will require interacting with the console output.
 
 ## Usage
 
