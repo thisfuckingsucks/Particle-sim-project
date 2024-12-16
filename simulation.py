@@ -1,3 +1,5 @@
+from modulefinder import packagePathMap
+
 import ball
 import turtle
 import random
@@ -13,41 +15,26 @@ class Simulation:
         turtle.colormode(255)
         self.canvas_width = turtle.screensize()[0]
         self.canvas_height = turtle.screensize()[1]
-        print(self.canvas_width, self.canvas_height)
-        self.ay = -0.2
-        self.coefficient = 0.8
         self.click = False
         self.click_x = 0
         self.click_y = 0
         self.dt = 0.2
         self.color = False
-        self.energy = True
+        self.energy = False
 
-        ball_radius = 2
-
-        # create balls in a grid pattern
-        grid_size = 1
-        while num_balls > grid_size**2:
-            grid_size += 1
-        i = 0
-        for k in range(grid_size):
-            for p in range(grid_size):
-                if i < self.num_balls:
-                    x = -self.canvas_width + (p + 1) * (2 * self.canvas_width / (grid_size + 1))
-                    y = -self.canvas_height + (k + 1)*(2 * self.canvas_height / (grid_size + 1))
-                    vx = 0 * random.uniform(-1.0, 1.0)
-                    vy = 0 * random.uniform(-1.0, 1.0)
-                    if i == 21:
-                        vx = 10
-                        vy = 10
-                    ball_color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-
-                    ball_radius = random.uniform(2,2)
-
-                    self.ball_list.append(ball.Ball(ball_radius, x, y, vx, vy, ball_color,i,
-                                                    ay=self.ay, coefficient = self.coefficient))
-                    self.ball_list[i].turtle.hideturtle()
-                    i += 1
+        self.mass = 0
+        self.rvl = -1.0
+        self.rvu = 1.0
+        self.vx = 10 * random.uniform(self.rvl, self.rvu)
+        self.vy = 10 * random.uniform(self.rvl, self.rvu)
+        self.random_velocity = True
+        self.ax = 0
+        self.ay = 0
+        self.coefficient = 1
+        self.p_size = 2.0
+        self.rsl = 1.5
+        self.rsu = 2.5
+        self.random_size = False
 
         self.text = {}
 
@@ -56,6 +43,7 @@ class Simulation:
         self.start_setup_bool = False
         self.choice = None
         self.selected_ball = None
+        self.reset_color = False
 
     def __draw_border(self):
         turtle.penup()
@@ -92,27 +80,43 @@ class Simulation:
             blue = 255
             red = 0
             if b.velocity() > 1:
-                change = int(b.velocity()*10)
+                change = int(b.velocity()*15)
+                if change > 255:
+                    change = 255
+                if change < 0:
+                    change = 0
                 blue -= change
-                if blue < 0:
-                    blue = 0
                 red += change
-                if red > 255:
-                    red = 255
             b.turtle.color(red,0,blue)
 
     def energy_mode(self):
         for b in self.ball_list:
             blue = 255
             red = 0
-            change = int(b.kinetic_energy() / 10000)
+            change = int(b.kinetic_energy() / 15000)
+            if change > 255:
+                change = 255
+            if change < 0:
+                change = 0
             blue -= change
-            if blue < 0:
-                blue = 0
             red += change
-            if red > 255:
-                red = 255
-            b.turtle.color(red, 0, blue)
+            b.turtle.color(0, red, blue)
+
+    def color_bool(self):
+        self.energy = False
+        if self.color:
+            self.color = False
+            self.reset_color = True
+        else:
+            self.color = True
+
+    def energy_bool(self):
+        self.color = False
+        if self.energy:
+            self.energy = False
+            self.reset_color = True
+        else:
+            self.energy = True
 
     def ui_start(self):
         self.text['title'] = text.Text()
@@ -123,14 +127,9 @@ class Simulation:
             self.text[f'{i}'].text.goto(-200,100-i*50)
         size = 24
         self.text['0'].write('Start setup',write_size=24)
-        self.text['1'].write('Particle amount', write_size=24)
-        self.text['2'].write('Particle size', write_size=24)
-        self.text['3'].write('Particle mass', write_size=24)
-        self.text['4'].write('Particle elasticity', write_size=24)
-        self.text['5'].write('Gravity', write_size=24)
-        self.text['6'].write('Simulation speed', write_size=24)
-        self.text['7'].write('Appearance/Color', write_size=24)
+        self.text['1'].write('Edit global parameters', write_size=24)
         self.screen.onkeypress(self.start_setup, '0')
+        self.screen.onkeypress(self.edit_parameter, '1')
 
     def start_simulation(self):
         self.start = True
@@ -143,6 +142,11 @@ class Simulation:
         self.text['speed'] = text.Text()
         self.text['speed'].text.goto(self.canvas_width - 150, self.canvas_height + 25)
         self.text['speed'].text.write(f'Speed: {round(self.dt * 5, 3):.2f}x', False, font=('Arial', 16, 'normal'))
+        self.text['color'] = text.Text()
+        self.text['color'].text.goto(-400, 325)
+        self.text['color'].write('z: velocity display / x: energy display',write_align='left')
+        self.screen.onkeypress(self.color_bool, 'z')
+        self.screen.onkeypress(self.energy_bool, 'x')
 
     def select_right(self):
         if self.text['selector'].selector_id+1 == self.num_balls:
@@ -171,9 +175,15 @@ class Simulation:
                 k = 0
                 j = 1
             self.text[select_ui_list[i]].text.goto(-420+160*k,-340-40*j)
-            self.text[select_ui_list[i]].write(qwerty[i]+':  '+
-                                               select_ui_list[i]+f' {getattr(self.ball_list[id],select_ui_list[i])}',
-                                               write_align='left',write_size=14)
+            if qwerty[i] == 'p':
+                self.text[select_ui_list[i]].write(qwerty[i]+':  '+
+                                                   select_ui_list[i]+f' {getattr(self.ball_list[id],select_ui_list[i])}',
+                                                   write_align='left',write_size=13)
+            else:
+                self.text[select_ui_list[i]].write(qwerty[i] + ':  ' +
+                                                   select_ui_list[
+                                                       i] + f' {getattr(self.ball_list[id], select_ui_list[i]):.2f}',
+                                                   write_align='left', write_size=13)
             k += 1
 
     def value_change(self):
@@ -222,10 +232,6 @@ class Simulation:
         self.screen.onkeypress(self.value_change, 'Up')
         self.screen.onkeypress(self.value_down, 'Down')
 
-    def select_change(self,choice):
-        self.ball_list[self.text['selector'].selector_id].__getattribute__(choice)
-        self.ball_list[0].ge = 1
-
     def run(self):
         # clear ui
         select_ui_list = ['size', 'mass', 'x', 'y', 'vx', 'vy', 'ax', 'ay', 'elasticity', 'color']
@@ -270,8 +276,40 @@ class Simulation:
                 self.color_mode()
             if self.energy:
                 self.energy_mode()
+            if self.reset_color:
+                for ba in self.ball_list:
+                    ba.turtle.color(ba.color)
+                self.reset_color = False
 
     def start_setup(self):
+        # create balls in a grid pattern
+        grid_size = 1
+        while num_balls > grid_size ** 2:
+            grid_size += 1
+        i = 0
+        for k in range(grid_size):
+            for p in range(grid_size):
+                if i < self.num_balls:
+                    x = -self.canvas_width + (p + 1) * (2 * self.canvas_width / (grid_size + 1))
+                    y = -self.canvas_height + (k + 1) * (2 * self.canvas_height / (grid_size + 1))
+                    if self.random_velocity:
+                        vx = 10 * random.uniform(self.rvl, self.rvu)
+                        vy = 10 * random.uniform(self.rvl, self.rvu)
+                    else:
+                        vx = self.vx
+                        vy = self.vy
+
+                    ball_color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+
+                    if self.random_size:
+                        ball_radius = random.uniform(self.rsl, self.rsu)
+                    else:
+                        ball_radius = self.p_size
+
+                    self.ball_list.append(ball.Ball(ball_radius, x, y, vx, vy, ball_color, i,
+                                                    ay=self.ay,ax=self.ax, coefficient=self.coefficient))
+                    self.ball_list[i].turtle.hideturtle()
+                    i += 1
         self.start_setup_bool = True
         self.text['title'].text.clear()
         for i in range(10):
@@ -285,6 +323,7 @@ class Simulation:
         self.text['selector'].text.left(90)
         self.text['selector'].text.color(255,0,0)
         self.text['selector'].text.goto(self.ball_list[0].x,self.ball_list[0].y)
+        self.screen.onkeypress(None, '1')
         self.screen.onkeypress(self.run, '0')
         self.screen.onkeypress(self.select_right, 'Right')
         self.screen.onkeypress(self.select_left, 'Left')
@@ -310,6 +349,118 @@ class Simulation:
         while True:
             self.screen.update()
 
-num_balls = 49
+    def particle_velocity(self):
+        while True:
+            print(f'\n1. Uniform velocity\n'
+                  f'2. Random velocity\n'
+                  f'3. Exit')
+            i = input('Input option: ')
+            if i == '1':
+                print(f'\nVertical velocity\n'
+                      f'Normal range: (-10, 10)\n'
+                      f'(positive is up)')
+                vv = float(input('Enter velocity value: '))
+                self.ay = vv
+                print(f'\nHorizontal velocity\n'
+                      f'Normal range: (-10, 10)\n'
+                      f'(positive is right)')
+                hv = float(input('Enter velocity value: '))
+                self.vx = hv
+                self.random_velocity = False
+            if i == '2':
+                print(f'\nRandom velocity\n'
+                      f'Default range: (-10, 10)')
+                rvl = float(input('Enter velocity lower limit: '))
+                self.rvl = rvl
+                while True:
+                    rvu = float(input('Enter velocity upper limit: '))
+                    if rvu > rvl:
+                        self.rvu = rvu
+                        self.random_velocity = True
+                        break
+            if i == '3':
+                break
+
+    def particle_size(self):
+        while True:
+            print(f'1. Uniform size\n'
+                  f'2. Random size\n'
+                  f'3. Exit')
+            i = input('Input option: ')
+            if i == '1':
+                while True:
+                    print(f'\nParticle size\n'
+                          f'Default value: 2.0\n'
+                          f'Normal range: (1.0, 3.0)')
+                    ps = float(input('Enter size value: '))
+                    if ps > 0:
+                        self.p_size = ps
+                        self.random_size = False
+                        break
+            if i == '2':
+                while True:
+                    print(f'\nRandom particle size\n'
+                          f'Normal range: (1.00, 3.00)\n')
+                    rsl = float(input('Enter size lower limit: '))
+                    if rsl > 0:
+                        rsu = float(input('Enter size upper limit: '))
+                        if rsu > 0:
+                            self.rsl = rsl
+                            self.rsu = rsu
+                            self.random_size = True
+                            break
+            if i == '3':
+                break
+
+    def edit_parameter(self):
+        while True:
+            print(f'\n1. Amount of particles\n'
+                  f'2. Particle size\n'
+                  f'3. Particle velocity\n'
+                  f'4. Gravity\n'
+                  f'5. Elasticity\n'
+                  f'6. Exit')
+            i = input('Input option: ')
+            if i == '1':
+                while True:
+                    print(f'\nAmount of particles\n'
+                          f'Default value: 25\n'
+                          f'Range: (1, 100)')
+                    pa = int(input('Enter particle amount: '))
+                    if pa > 0:
+                        self.num_balls = pa
+                        break
+            if i == '2':
+                self.particle_size()
+            if i == '3':
+                self.particle_velocity()
+            if i == '4':
+                while True:
+                    print(f'\nVertical gravity\n'
+                          f'Default Value: 0.0\n'
+                          f'Normal range: (-1.0, 1.0)\n'
+                          f'(positive is up)')
+                    vg = float(input('Enter gravity value: '))
+                    self.ay = vg
+                    print(f'\nHorizontal gravity\n'
+                          f'Default Value: 0.0\n'
+                          f'Normal range: (-1.0, 1.0)\n'
+                          f'(positive is right)')
+                    hg = float(input('Enter gravity value: '))
+                    self.ax = hg
+                    break
+            if i == '5':
+                while True:
+                    print(f'\nElasticity\n'
+                          f'Default value: 1.00\n'
+                          f'Normal range: (0.00, 1,00)')
+                    e = float(input('Enter elasticity value: '))
+                    if e >= 0:
+                        self.coefficient = e
+                        break
+            if i == 6:
+                break
+
+num_balls = 25
 my_simulator = Simulation(num_balls)
 my_simulator.start_sim()

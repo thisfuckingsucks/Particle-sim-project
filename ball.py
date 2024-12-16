@@ -9,6 +9,7 @@ class Ball:
         self.y = y
         self.vx = vx
         self.vy = vy
+        self.original_color = color
         self.color = color
         self.mass = 100 * self.radius**2
         self.count = 0
