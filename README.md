@@ -7,9 +7,11 @@ This a particle simulation you can play around with where you can edit the prope
 Just download all python files together and run 'simulation.py' to start the simulation. Editing the global parameters will require interacting with the console output.
 
 ## Usage
+https://www.youtube.com/watch?v=crOnPfwzDtM&authuser=0
 
 ## Project design and implementation
-
+![Untitled683_20241216234150](https://github.com/user-attachments/assets/4b129da4-b4ef-447b-9dc1-1cf468309a42)
+The Ball class makes up the particles in the Simulation class. And the Text class provides and easier way to display text than python turtle in the Simulation class.
 ### Provided code uses
 The provided event driven simulation code was modified to a time driven simulation one due to the provided code sometimes not working correctly when implementing curved particle movement at the start of the project.
 And the code for user interactivities were used as a reference for implementing features of the same manner in this project.
