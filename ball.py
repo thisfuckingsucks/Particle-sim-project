@@ -27,7 +27,7 @@ class Ball:
         self.ay = ay
         self.fx = fx
         self.fy = fy
-        self.coefficient = coefficient
+        self.elasticity = coefficient
 
     def bounce_off(self, that):
         # error check
@@ -44,8 +44,8 @@ class Ball:
 
         magnitude = 2 * self.mass * that.mass * dvdr / (mass_sum * c_distance**2)
 
-        fx = magnitude * dx * self.coefficient
-        fy = magnitude * dy * self.coefficient
+        fx = magnitude * dx * self.elasticity
+        fy = magnitude * dy * self.elasticity
 
         self.vx += fx / self.mass
         self.vy += fy / self.mass
@@ -116,17 +116,62 @@ class Ball:
         # move ball back into border
         if abs(self.x) > (canvas_width - self.radius):
             self.x = (canvas_width - self.radius) * math.copysign(1,self.x)
-            self.vx = -self.vx * self.coefficient
+            self.vx = -self.vx * self.elasticity
 
         if abs(self.y) > (canvas_height - self.radius):
             self.y = (canvas_height - self.radius) * math.copysign(1, self.y)
-            self.vy = -self.vy * self.coefficient
+            self.vy = -self.vy * self.elasticity
 
     def velocity(self):
         return math.sqrt(self.vx**2 + self.vy**2)
 
     def kinetic_energy(self):
         return (self.mass * self.velocity()**2) / 2
+
+    def select(self,choice,value):
+        if choice == 'size':
+            i = 0.1*value
+            self.size += i
+            if self.size + i < 0.1:
+                self.size = 0.1
+            self.size = round(self.size,2)
+            self.radius = self.size * 10
+            self.turtle.shapesize(self.size,self.size)
+        if choice == 'mass':
+            i = 5000*value
+            self.mass += i
+            self.mass = round(self.mass,0)
+            if self.mass <= 0:
+                self.mass -= i
+            self.mass = round(self.mass, 0)
+        if choice == 'x':
+            i = 10*value
+            self.x += i
+            self.turtle.setx(self.x)
+        if choice == 'y':
+            i = 10*value
+            self.y += i
+            self.turtle.sety(self.y)
+        if choice == 'vx':
+            i = 1*value
+            self.vx += i
+        if choice == 'vy':
+            i = 1*value
+            self.vy += i
+        if choice == 'ax':
+            i = 0.1*value
+            self.ax += i
+            self.ax = round(self.ax, 1)
+        if choice == 'ay':
+            i = 0.1*value
+            self.ay += i
+            self.ay = round(self.ay, 1)
+        if choice == 'elasticity':
+            i = 0.05*value
+            self.elasticity += i
+            if self.elasticity <= 0:
+                self.elasticity = 0
+            self.elasticity = round(self.elasticity,2)
 
     def __str__(self):
         return f'hi im ball {self.id}'
