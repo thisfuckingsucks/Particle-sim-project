@@ -14,8 +14,8 @@ simulation set up screen 'Left' and 'Right' to select particle\
 'q' 'w' 'e' 'r' 't' 'y' 'u' 'i' 'o' 'p' to select particle property\
 'Up' and 'Down' to adjust property\
 '0' to start simulation\
-During simulation 'LMB' to creat pulling force\
-'RMB' to cancel
+During simulation 'LMB' to create pulling force and 'RMB' to cancel\
+'Up' and 'Down' to change simulation speed
 
 ## Project design and implementation
 ![Untitled683_20241216234150](https://github.com/user-attachments/assets/4b129da4-b4ef-447b-9dc1-1cf468309a42)
